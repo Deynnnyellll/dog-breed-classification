@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <div class="model-panel">
+            <label for="model-file">Select Model:</label>
+            <input type="file" id="model-file" accept=".h5,.json">
+            <span id="model-filename">No model selected</span>
+        </div>
+        <div class="main-panel">
+            <div class="left-panel">
+                <div id="upload-area">
+                    <input type="file" id="upload-image" accept="image/*" style="display: none;">
+                    <label id="image-display" for="upload-image" style="cursor: pointer;">Click to upload an image</label>
+                </div>
+                <button id="classify-button" onclick="classifyImage()">Classify</button>
+                <button id="clear-button" onclick="clearImage()">Clear</button>
+            </div>
+            <div class="right-panel">
+                <div id="output">
+                    <div id="loading-animation"></div>
+                    <h4 id="prediction"></h4>
+                    <h4 id="confidence"></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+            let selectedModel = null;
+            let selectedImage = null;
+            let image = null
+            let model = null
+
+            function initialize() {
+                document.getElementById('model-file').onchange = handleModelChange;
+                document.getElementById('upload-image').onchange = handleImageUpload;
+            }
+
+            function handleModelChange(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    selectedModel = file;
+                    document.getElementById('model-filename').textContent = file.name;
+                    uploadFile(file, 'model-file', 'model');
+                }
+            }
+
+            function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    selectedImage = file;
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('image-display').innerHTML = `<img src="${e.target.result}" alt="Selected Image">`;
+                    }
+                    reader.readAsDataURL(file);
+                    uploadFile(file, 'image-file', 'image')
+                }
+            }
+
+            function uploadFile(file, type, navigate) {
+                const formData = new FormData();
+                formData.append(type, file);
+
+                const url = 'http://127.0.0.1:5000/load';
+
+                fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    alert(data.message);
+                    if (navigate === "image"){
+                        image = data.path;
+                    }
+                    else{
+                        model = data.path;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error uploading files.');
+                });
+        }
+
+
+            function classifyImage() {
+                if (selectedImage && selectedModel) {
+                    document.getElementById('prediction').textContent = '';
+                    document.getElementById('confidence').textContent = '';
+                    document.getElementById('loading-animation').style.display = 'block';
+
+                    const url = 'http://127.0.0.1:5000/predict';
+
+                    const data = {
+                        model: model,
+                        image: image
+                    }
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        document.getElementById('loading-animation').style.display = 'block';
+                        document.getElementById('prediction').textContent = data.prediction;
+                        document.getElementById('confidence').textContent = data.confidence;
+                    })
+                    .catch(error => {
+                        console.error('Error: ', error)
+                    })
+
+                } else {
+                    alert('Please select a model and an image first.');
+                }
+            }
+
+            function clearImage() {
+                document.getElementById('upload-image').value = '';
+                document.getElementById('image-display').innerHTML = 'Click to upload an image';
+                document.getElementById('prediction').textContent = '';
+                document.getElementById('confidence').textContent = '';
+                selectedImage = null;
+            }
+
+            initialize();
+
+    </script>
+</body>
+</html>
