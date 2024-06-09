@@ -48,5 +48,31 @@ def upload_file():
     else:
         return jsonify({"error": "No file uploaded"}), 400
 
+# delete all the files from image and model folder before running the web application
+def delete_files():
+    try:
+        model_files = os.listdir(app.config['MODEL_FOLDER'])
+        image_files = os.listdir(app.config['IMAGE_FOLDER'])
+
+        if len(model_files) != 0:
+            for model in model_files:
+                model_path = os.path.join(app.config['MODEL_FOLDER'], model)
+                os.remove(model_path)
+                print("Model folder successfully cleared")
+        else:
+            print("No existing files in model folder")
+
+
+        if len(image_files) != 0:
+            for image in image_files:
+                image_path = os.path.join(app.config['IMAGE_FOLDER'], image)
+                os.remove(image_path)
+                print("Image folder successfully cleared")
+        else:
+            print("No existing files in image folder")        
+
+    except Exception as e:
+        print(f"Error! cannot delete files: {e}")    
+
 if __name__ == '__main__':
     app.run(debug=True)
