@@ -75,4 +75,5 @@ def delete_files():
         print(f"Error! cannot delete files: {e}")    
 
 if __name__ == '__main__':
+    delete_files()
     app.run(debug=True)
