@@ -83,6 +83,7 @@ body {
     cursor: pointer;
     margin-bottom: 20px;
     transition: background-color 0.3s;
+    overflow: hidden;
 }
 
 #upload-area:hover {
@@ -163,4 +164,27 @@ body {
     align-items: center;
     justify-content: center;
     gap: 5%;
+}
+
+
+
+/* Code for Animation */
+#scanner {
+    position: absolute;
+    z-index: 10;
+    left: 24.8%;
+    width: 22.8%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.75);
+    animation: scan 2s linear infinite;
+    opacity: 0;
+}
+
+@keyframes scan {
+    0% {
+        top: 27%;
+    }
+    100% {
+        top: 72%;
+    }
 }
